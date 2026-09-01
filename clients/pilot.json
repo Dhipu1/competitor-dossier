@@ -1,0 +1,8 @@
+{
+  "client": { "name": "Supergiant Games", "start_url": "https://www.supergiantgames.com/" },
+  "competitors": [
+    { "name": "Team Cherry", "start_url": "https://teamcherry.com.au/" },
+    { "name": "Klei Entertainment", "start_url": "https://www.kleientertainment.com/" }
+  ],
+  "max_pages_per_site": 10
+}

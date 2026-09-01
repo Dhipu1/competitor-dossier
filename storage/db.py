@@ -31,6 +31,8 @@ CREATE TABLE IF NOT EXISTS crawls (
 CREATE TABLE IF NOT EXISTS pages (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     crawl_id INTEGER NOT NULL REFERENCES crawls(id),
+    site_name TEXT NOT NULL,
+    site_role TEXT NOT NULL,  -- 'client' or 'competitor'
     url TEXT NOT NULL,
     final_url TEXT NOT NULL,
     title TEXT,
@@ -41,6 +43,7 @@ CREATE TABLE IF NOT EXISTS pages (
 
 CREATE INDEX IF NOT EXISTS idx_pages_url ON pages(url);
 CREATE INDEX IF NOT EXISTS idx_pages_content_hash ON pages(content_hash);
+CREATE INDEX IF NOT EXISTS idx_pages_site_name ON pages(site_name);
 """
 
 
@@ -68,16 +71,19 @@ def finish_crawl(conn: sqlite3.Connection, crawl_id: int) -> None:
     conn.commit()
 
 
-def save_page(conn: sqlite3.Connection, crawl_id: int, page) -> int:
+def save_page(conn: sqlite3.Connection, crawl_id: int, page, *, site_name: str, site_role: str) -> int:
     """Stores one fetched page. `page` is a crawler.fetch.FetchedPage."""
     now = datetime.now(timezone.utc).isoformat()
     cursor = conn.execute(
         """
-        INSERT INTO pages (crawl_id, url, final_url, title, text, content_hash, fetched_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO pages
+            (crawl_id, site_name, site_role, url, final_url, title, text, content_hash, fetched_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             crawl_id,
+            site_name,
+            site_role,
             page.url,
             page.final_url,
             page.title,

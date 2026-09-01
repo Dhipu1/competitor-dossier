@@ -30,6 +30,6 @@ if __name__ == "__main__":
 
     conn = get_connection()
     crawl_id = start_crawl(conn)
-    page_id = save_page(conn, crawl_id, page)
+    page_id = save_page(conn, crawl_id, page, site_name="Wikipedia (test)", site_role="client")
     finish_crawl(conn, crawl_id)
     print(f"\nSaved as page id {page_id} under crawl id {crawl_id} in dossier.db")

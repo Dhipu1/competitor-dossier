@@ -33,14 +33,18 @@ def _parser_for(origin: str) -> RobotFileParser:
     try:
         with urllib.request.urlopen(request, timeout=10) as response:
             body = response.read().decode("utf-8", errors="replace")
-        parser.parse(body.splitlines())
+        parser.parse(body.splitlines())  # parse() also marks the parser as "checked"
     except urllib.error.HTTPError as e:
         if e.code in (401, 403):
             parser.disallow_all = True  # explicitly forbidden from even checking
-        # any other error (e.g. 404) leaves the parser with no rules, which
-        # RobotFileParser correctly treats as "everything allowed"
+        # any other error (e.g. 404: no robots.txt at all) leaves no rules,
+        # which conventionally means "everything allowed" — but can_fetch()
+        # refuses everything until parser.modified() has marked it "checked"
+        # (parse() does this internally; we skipped parse() on these paths,
+        # so we must call it ourselves below)
+        parser.modified()
     except OSError:
-        pass  # network failure — default to allowing, same reasoning as above
+        parser.modified()  # network failure — default to allowing, same reasoning
 
     return parser
 

@@ -1,5 +1,11 @@
 .venv/
 __pycache__/
+
+# third-party agent skills (installed via `npx skills add`), not project source
+.agents/
+.claude/
+skills-lock.json
+
 *.pyc
 *.db
 *.db-journal
