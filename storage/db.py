@@ -42,6 +42,16 @@ CREATE TABLE IF NOT EXISTS pages (
     fetched_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS chunks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    page_id INTEGER NOT NULL REFERENCES pages(id),
+    ordinal INTEGER NOT NULL,
+    heading TEXT,
+    text TEXT NOT NULL,
+    embedding BLOB NOT NULL  -- float32 vector, packed as raw bytes
+);
+
+CREATE INDEX IF NOT EXISTS idx_chunks_page_id ON chunks(page_id);
 CREATE INDEX IF NOT EXISTS idx_pages_url ON pages(url);
 CREATE INDEX IF NOT EXISTS idx_pages_content_hash ON pages(content_hash);
 CREATE INDEX IF NOT EXISTS idx_pages_site_name ON pages(site_name);
@@ -70,6 +80,21 @@ def finish_crawl(conn: sqlite3.Connection, crawl_id: int) -> None:
     now = datetime.now(timezone.utc).isoformat()
     conn.execute("UPDATE crawls SET finished_at = ? WHERE id = ?", (now, crawl_id))
     conn.commit()
+
+
+def save_chunks(conn: sqlite3.Connection, page_id: int, chunks, embeddings) -> int:
+    """Stores a page's chunks alongside their embedding vectors."""
+    from ingest.embed import to_blob
+
+    conn.executemany(
+        "INSERT INTO chunks (page_id, ordinal, heading, text, embedding) VALUES (?, ?, ?, ?, ?)",
+        [
+            (page_id, c.ordinal, c.heading, c.text, to_blob(vec))
+            for c, vec in zip(chunks, embeddings)
+        ],
+    )
+    conn.commit()
+    return len(chunks)
 
 
 def save_page(conn: sqlite3.Connection, crawl_id: int, page, *, site_name: str, site_role: str) -> int:
