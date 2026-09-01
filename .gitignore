@@ -13,3 +13,6 @@ skills-lock.json
 .env.*
 *.log
 node_modules/
+
+# generated audit reports — outputs, regenerable from the pipeline
+reports/*.md
