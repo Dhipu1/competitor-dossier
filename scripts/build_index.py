@@ -24,8 +24,19 @@ if __name__ == "__main__":
     conn.execute("DELETE FROM chunks")
     conn.commit()
 
-    pages = conn.execute("SELECT id, site_name, title, text FROM pages").fetchall()
-    print(f"Chunking {len(pages)} pages...")
+    # index the most recent finished crawl only. Indexing every page ever
+    # crawled would mix this month's snapshot with last month's and count the
+    # same page repeatedly — an audit describes the sites as they are now.
+    latest = conn.execute(
+        "SELECT id FROM crawls WHERE finished_at IS NOT NULL ORDER BY id DESC LIMIT 1"
+    ).fetchone()
+    if latest is None:
+        sys.exit("No finished crawls found. Run scripts/crawl_pilot.py first.")
+
+    pages = conn.execute(
+        "SELECT id, site_name, title, text FROM pages WHERE crawl_id = ?", (latest["id"],)
+    ).fetchall()
+    print(f"Chunking {len(pages)} pages from crawl {latest['id']}...")
 
     all_chunks = []  # (page_id, chunk) pairs, embedded together in one batch
     for page in pages:
