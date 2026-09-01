@@ -7,10 +7,17 @@ changed since last month.
 Sold two ways: a one-time competitor gap audit, and a monthly monitoring
 retainer that re-runs the same pipeline and reports only what changed.
 
-## Status
+## How it works
 
-Early build — see commit history for progress. Being built incrementally,
-one pipeline stage at a time.
+```
+crawl  ->  chunk  ->  embed  ->  retrieve  ->  measure gaps  ->  write report
+```
+
+Gaps are measured rather than guessed: for every competitor chunk, the
+pipeline finds the closest thing on the client's site. A distant nearest
+match means competitors cover ground the client doesn't. The LLM only
+explains findings that already exist in the data, and must cite the URLs
+it was given.
 
 ## Setup
 
@@ -20,8 +27,36 @@ python -m venv .venv
 .venv\Scripts\python -m playwright install chromium
 ```
 
+Then create a `.env` file (never committed) with:
+
+```
+GEMINI_API_KEY=your-key-here
+```
+
+## Running an audit
+
+```
+.venv\Scripts\python scripts\crawl_pilot.py clients\pilot.json   # crawl the sites
+.venv\Scripts\python scripts\build_index.py                       # chunk + embed
+.venv\Scripts\python scripts\generate_report.py                   # write the report
+.venv\Scripts\python scripts\verify_citations.py                  # check for fabricated links
+```
+
+Crawling is the only step that touches other people's servers. Raw HTML is
+stored, so chunking, embedding, and report changes all re-run for free.
+
 ## Layout
 
-- `crawler/` — fetches pages with a real browser, extracts main content
-- `storage/` — SQLite database: crawled pages, crawl history
-- (more stages added as the pipeline grows)
+- `crawler/` — robots.txt checks, browser fetch, whole-site link following
+- `ingest/` — splitting pages into chunks, turning chunks into vectors
+- `retrieval/` — semantic search over stored chunks
+- `synth/` — gap measurement, prompts, Gemini client
+- `storage/` — SQLite schema and writes
+- `clients/` — per-client config: which sites, how many pages
+- `scripts/` — the commands above
+
+## Client config
+
+`clients/pilot.json` names the client site and its competitors. The current
+pilot uses game studios: Supergiant Games as the client, Team Cherry and
+Klei Entertainment as competitors.
