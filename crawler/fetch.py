@@ -75,8 +75,17 @@ class Crawler:
         finally:
             page.close()
 
+        # include_formatting keeps markdown headings (#, ##) in the output, which
+        # is what lets us later split a page into sections instead of blind
+        # fixed-size blocks. Metadata is deliberately NOT included in the text:
+        # we store title/url as their own columns, and repeating them inside the
+        # text would just pollute the embeddings with boilerplate.
         extracted = trafilatura.extract(
-            html, url=final_url, include_comments=False, with_metadata=True
+            html,
+            url=final_url,
+            include_comments=False,
+            include_formatting=True,
+            with_metadata=False,
         )
         metadata = trafilatura.extract_metadata(html, default_url=final_url)
         title = metadata.title if metadata else None

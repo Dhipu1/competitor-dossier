@@ -36,7 +36,8 @@ CREATE TABLE IF NOT EXISTS pages (
     url TEXT NOT NULL,
     final_url TEXT NOT NULL,
     title TEXT,
-    text TEXT,
+    html TEXT,   -- raw page HTML, kept so we can re-extract/re-chunk later
+    text TEXT,   -- main content, nav/ads/footers stripped
     content_hash TEXT NOT NULL,
     fetched_at TEXT NOT NULL
 );
@@ -77,8 +78,9 @@ def save_page(conn: sqlite3.Connection, crawl_id: int, page, *, site_name: str, 
     cursor = conn.execute(
         """
         INSERT INTO pages
-            (crawl_id, site_name, site_role, url, final_url, title, text, content_hash, fetched_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (crawl_id, site_name, site_role, url, final_url, title, html, text,
+             content_hash, fetched_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             crawl_id,
@@ -87,6 +89,7 @@ def save_page(conn: sqlite3.Connection, crawl_id: int, page, *, site_name: str, 
             page.url,
             page.final_url,
             page.title,
+            page.html,
             page.text,
             hash_text(page.text),
             now,
