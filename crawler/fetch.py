@@ -58,7 +58,20 @@ class Crawler:
             # widgets, and polling connections mean network activity often
             # never fully stops. "load" (the browser's load event) is what
             # every plain browser waits for and is far more reliable.
-            response = page.goto(url, wait_until="load", timeout=timeout_ms)
+            #
+            # Some pages still miss it — a single slow image or tracker holds
+            # the load event open past the timeout even though the content we
+            # want has been there for seconds. So on a timeout we retry once
+            # with "domcontentloaded", which fires as soon as the HTML is
+            # parsed. Losing a page to a stalled image would silently skew an
+            # audit: the client looks like they never covered a topic when in
+            # fact we just failed to read the page.
+            try:
+                response = page.goto(url, wait_until="load", timeout=timeout_ms)
+            except PlaywrightTimeoutError:
+                print(f"[retry] {url} -> load timed out, retrying on domcontentloaded")
+                response = page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
+
             if response is None or not response.ok:
                 status = response.status if response else "no response"
                 print(f"[fail] {url} -> {status}")
