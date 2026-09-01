@@ -41,7 +41,9 @@ class Crawler:
         self._playwright = sync_playwright().start()
         self._browser = self._playwright.chromium.launch(headless=headless)
 
-    def fetch(self, url: str, *, timeout_ms: int = 30_000) -> Optional[FetchedPage]:
+    def fetch(
+        self, url: str, *, timeout_ms: int = 30_000, settle_ms: int = 5_000
+    ) -> Optional[FetchedPage]:
         """Loads `url` and returns its content, or None if we shouldn't/can't fetch it."""
         if not can_fetch(url):
             print(f"[skip] robots.txt disallows: {url}")
@@ -76,6 +78,18 @@ class Crawler:
                 status = response.status if response else "no response"
                 print(f"[fail] {url} -> {status}")
                 return None
+
+            # The load event can fire before JavaScript-rendered content
+            # arrives, so two crawls of an unchanged page can capture
+            # different text — which monitoring would then report to a client
+            # as "this page changed". Give async content a few seconds to
+            # settle, but treat the wait as best-effort: sites that never go
+            # idle (see above) must not fail here.
+            try:
+                page.wait_for_load_state("networkidle", timeout=settle_ms)
+            except PlaywrightTimeoutError:
+                pass
+
             html = page.content()
             final_url = page.url
             # asks the already-loaded page for every link's fully-resolved
