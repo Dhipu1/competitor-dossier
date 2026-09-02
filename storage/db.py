@@ -51,6 +51,24 @@ CREATE TABLE IF NOT EXISTS chunks (
     embedding BLOB NOT NULL  -- float32 vector, packed as raw bytes
 );
 
+-- derived from stored HTML, so it can be recomputed any time without
+-- re-crawling. One row per page; re-running enrichment replaces it.
+CREATE TABLE IF NOT EXISTS page_signals (
+    page_id INTEGER PRIMARY KEY REFERENCES pages(id),
+    title_tag TEXT,
+    title_length INTEGER,
+    meta_description TEXT,
+    meta_description_length INTEGER,
+    h1_count INTEGER,
+    h1_text TEXT,
+    h2_count INTEGER,
+    word_count INTEGER,
+    internal_links INTEGER,
+    external_links INTEGER,
+    has_canonical INTEGER,
+    has_structured_data INTEGER
+);
+
 CREATE INDEX IF NOT EXISTS idx_chunks_page_id ON chunks(page_id);
 CREATE INDEX IF NOT EXISTS idx_pages_url ON pages(url);
 CREATE INDEX IF NOT EXISTS idx_pages_content_hash ON pages(content_hash);
@@ -95,6 +113,35 @@ def save_chunks(conn: sqlite3.Connection, page_id: int, chunks, embeddings) -> i
     )
     conn.commit()
     return len(chunks)
+
+
+def save_signals(conn: sqlite3.Connection, page_id: int, signals) -> None:
+    """Stores one page's on-page SEO signals. `signals` is enrichment.onpage.PageSignals."""
+    conn.execute(
+        """
+        INSERT OR REPLACE INTO page_signals
+            (page_id, title_tag, title_length, meta_description, meta_description_length,
+             h1_count, h1_text, h2_count, word_count, internal_links, external_links,
+             has_canonical, has_structured_data)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            page_id,
+            signals.title_tag,
+            signals.title_length,
+            signals.meta_description,
+            signals.meta_description_length,
+            signals.h1_count,
+            signals.h1_text,
+            signals.h2_count,
+            signals.word_count,
+            signals.internal_links,
+            signals.external_links,
+            int(signals.has_canonical),
+            int(signals.has_structured_data),
+        ),
+    )
+    conn.commit()
 
 
 def save_page(conn: sqlite3.Connection, crawl_id: int, page, *, site_name: str, site_role: str) -> int:
