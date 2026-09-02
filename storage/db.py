@@ -69,6 +69,18 @@ CREATE TABLE IF NOT EXISTS page_signals (
     has_structured_data INTEGER
 );
 
+-- every URL a site lists in its own sitemap. Far wider than what we crawl:
+-- the crawl samples pages, this records the site's whole declared inventory.
+CREATE TABLE IF NOT EXISTS sitemap_urls (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    crawl_id INTEGER NOT NULL REFERENCES crawls(id),
+    site_name TEXT NOT NULL,
+    site_role TEXT NOT NULL,
+    url TEXT NOT NULL,
+    lastmod TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_sitemap_crawl ON sitemap_urls(crawl_id, site_name);
 CREATE INDEX IF NOT EXISTS idx_chunks_page_id ON chunks(page_id);
 CREATE INDEX IF NOT EXISTS idx_pages_url ON pages(url);
 CREATE INDEX IF NOT EXISTS idx_pages_content_hash ON pages(content_hash);
@@ -142,6 +154,22 @@ def save_signals(conn: sqlite3.Connection, page_id: int, signals) -> None:
         ),
     )
     conn.commit()
+
+
+def save_sitemap_urls(conn, crawl_id: int, site_name: str, site_role: str, entries) -> int:
+    """Replaces this crawl's sitemap inventory for one site."""
+    conn.execute(
+        "DELETE FROM sitemap_urls WHERE crawl_id = ? AND site_name = ?", (crawl_id, site_name)
+    )
+    conn.executemany(
+        "INSERT INTO sitemap_urls (crawl_id, site_name, site_role, url, lastmod) VALUES (?, ?, ?, ?, ?)",
+        [
+            (crawl_id, site_name, site_role, e.url, e.lastmod.isoformat() if e.lastmod else None)
+            for e in entries
+        ],
+    )
+    conn.commit()
+    return len(entries)
 
 
 def save_page(conn: sqlite3.Connection, crawl_id: int, page, *, site_name: str, site_role: str) -> int:

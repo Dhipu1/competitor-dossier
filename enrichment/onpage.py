@@ -17,8 +17,9 @@ What these signals answer:
   - internal links: a site's own vote on which of its pages matter.
 """
 
+import sqlite3
 from dataclasses import dataclass
-from typing import Optional
+from typing import List, Optional
 from urllib.parse import urlparse
 
 import lxml.html
@@ -38,6 +39,56 @@ class PageSignals:
     external_links: int
     has_canonical: bool
     has_structured_data: bool
+
+
+@dataclass
+class SiteSignals:
+    """On-page signals averaged across the pages we sampled for one site."""
+    site_name: str
+    site_role: str
+    pages: int
+    avg_words: float
+    pages_missing_description: int
+    pages_missing_h1: int
+    pages_multiple_h1: int
+    pages_with_structured_data: int
+    avg_internal_links: float
+
+
+def aggregate_by_site(conn: sqlite3.Connection, crawl_id: int) -> List[SiteSignals]:
+    """Rolls per-page signals up to one row per site, for report comparisons."""
+    rows = conn.execute(
+        """
+        SELECT p.site_name, p.site_role,
+               COUNT(*) AS pages,
+               AVG(s.word_count) AS avg_words,
+               SUM(CASE WHEN s.meta_description IS NULL OR s.meta_description = '' THEN 1 ELSE 0 END) AS no_desc,
+               SUM(CASE WHEN s.h1_count = 0 THEN 1 ELSE 0 END) AS no_h1,
+               SUM(CASE WHEN s.h1_count > 1 THEN 1 ELSE 0 END) AS multi_h1,
+               SUM(s.has_structured_data) AS schema_pages,
+               AVG(s.internal_links) AS avg_internal
+        FROM page_signals s JOIN pages p ON p.id = s.page_id
+        WHERE p.crawl_id = ?
+        GROUP BY p.site_name, p.site_role
+        ORDER BY p.site_role, p.site_name
+        """,
+        (crawl_id,),
+    ).fetchall()
+
+    return [
+        SiteSignals(
+            site_name=r["site_name"],
+            site_role=r["site_role"],
+            pages=r["pages"],
+            avg_words=round(r["avg_words"] or 0, 1),
+            pages_missing_description=r["no_desc"],
+            pages_missing_h1=r["no_h1"],
+            pages_multiple_h1=r["multi_h1"],
+            pages_with_structured_data=r["schema_pages"],
+            avg_internal_links=round(r["avg_internal"] or 0, 1),
+        )
+        for r in rows
+    ]
 
 
 def _first_text(nodes) -> Optional[str]:

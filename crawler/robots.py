@@ -56,6 +56,13 @@ def can_fetch(url: str) -> bool:
     return _parser_for(origin).can_fetch(USER_AGENT, url)
 
 
+def sitemaps_for(url: str) -> list:
+    """Sitemap URLs a site advertises in its robots.txt (often none)."""
+    parsed = urlparse(url)
+    origin = f"{parsed.scheme}://{parsed.netloc}"
+    return list(_parser_for(origin).sitemaps or [])
+
+
 def crawl_delay(url: str) -> float:
     """Seconds robots.txt asks us to wait between requests to this site (0 if unspecified)."""
     parsed = urlparse(url)
