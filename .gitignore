@@ -18,3 +18,7 @@ node_modules/
 # (templates/ holds the committed source template)
 reports/*.md
 reports/*.html
+
+# generated scheduler launchers — contain absolute paths for one machine
+jobs/*.bat
+jobs/*.log
