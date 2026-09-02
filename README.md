@@ -35,13 +35,39 @@ GEMINI_API_KEY=your-key-here
 
 ## Running an audit
 
+One command runs the whole thing, in dependency order, stopping on failure:
+
+```
+.venv\Scripts\python scripts\run_audit.py clients\pilot.json
+```
+
+It produces `reports\audit-<date>.md` and a client-ready
+`reports\audit-<date>.html` (open it and Ctrl+P → Save as PDF). Citation
+verification runs before the deliverable is built, so a report citing pages
+that were never crawled cannot become a document.
+
+Add `--no-crawl` to redo the analysis on the last crawl without re-fetching.
+
+The individual steps, if you need to run one on its own:
+
 ```
 .venv\Scripts\python scripts\crawl_pilot.py clients\pilot.json   # crawl the sites
 .venv\Scripts\python scripts\enrich.py                            # on-page signals + sitemaps
 .venv\Scripts\python scripts\build_index.py                       # chunk + embed
 .venv\Scripts\python scripts\generate_report.py                   # write the report
 .venv\Scripts\python scripts\verify_citations.py                  # check for fabricated links
+.venv\Scripts\python scripts\build_deliverable.py                 # styled HTML/PDF
 ```
+
+## Monitoring
+
+```
+.venv\Scripts\python scripts\monitor_run.py clients\pilot.json          # one run now
+.venv\Scripts\python scripts\schedule_monitoring.py clients\pilot.json  # set up a schedule
+```
+
+The scheduler prints the Task Scheduler command and only registers it if you
+pass `--install`.
 
 Crawling is the only step that touches other people's servers (bar one small
 sitemap request per site). Raw HTML is stored, so enrichment, chunking,
@@ -66,8 +92,20 @@ reported as unknown scale, never as zero.
 - `retrieval/` — semantic search over stored chunks
 - `synth/` — gap measurement, prompts, Gemini client
 - `storage/` — SQLite schema and writes
+- `jobs/` — crawl diffing for monitoring, generated scheduler launchers
 - `clients/` — per-client config: which sites, how many pages
+- `templates/` — the client deliverable template
+- `docs/` — the offer one-pager, onboarding checklist, sample audit
 - `scripts/` — the commands above
+
+## Selling it
+
+- [`docs/one-pager.md`](docs/one-pager.md) — the four offers and what's in each
+  (rates are invented for this practice project)
+- [`docs/onboarding.md`](docs/onboarding.md) — what to collect from a client
+  before the first crawl, and why each item matters
+- [`docs/sample-audit.md`](docs/sample-audit.md) — real pipeline output with the
+  subjects anonymised, regenerate with `scripts\anonymize_sample.py`
 
 ## Client config
 
