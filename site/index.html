@@ -1,0 +1,971 @@
+<title>The Competitor Dossier</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Spectral:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --paper:#E8EBE5;
+    --surface:#F5F7F2;
+    --sunk:#DEE2DA;
+    --ink:#16211D;
+    --ink-soft:#4C5A54;
+    --ink-faint:#7C877F;
+    --line:#C9D1C8;
+    --line-soft:#D8DED6;
+    --brass:#8A6A18;
+    --brass-bg:#EFE7D2;
+    --petrol:#1D5F57;
+    --petrol-bg:#DDE8E4;
+    --shadow:0 1px 2px rgba(22,33,29,.07);
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --paper:#0E1513;
+      --surface:#16201D;
+      --sunk:#121A18;
+      --ink:#E3E7E0;
+      --ink-soft:#9AA79F;
+      --ink-faint:#6B7872;
+      --line:#28332F;
+      --line-soft:#202A27;
+      --brass:#D3A748;
+      --brass-bg:#2A2313;
+      --petrol:#58AC9F;
+      --petrol-bg:#132523;
+      --shadow:0 1px 2px rgba(0,0,0,.3);
+      color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0E1513;
+    --surface:#16201D;
+    --sunk:#121A18;
+    --ink:#E3E7E0;
+    --ink-soft:#9AA79F;
+    --ink-faint:#6B7872;
+    --line:#28332F;
+    --line-soft:#202A27;
+    --brass:#D3A748;
+    --brass-bg:#2A2313;
+    --petrol:#58AC9F;
+    --petrol-bg:#132523;
+    --shadow:0 1px 2px rgba(0,0,0,.3);
+    color-scheme:dark;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Spectral",Georgia,"Times New Roman",serif;
+    font-size:17px;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  h1,h2,h3,h4{
+    font-family:"Archivo","Helvetica Neue",Arial,sans-serif;
+    font-weight:700;
+    letter-spacing:-.018em;
+    text-wrap:balance;
+    margin:0;
+  }
+
+  .mono,.eyebrow,.score,.metric,.tag,.stat-num,.price,th{
+    font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-variant-numeric:tabular-nums;
+  }
+
+  a{color:var(--petrol);}
+  a:focus-visible,button:focus-visible,[tabindex]:focus-visible{
+    outline:2px solid var(--brass);
+    outline-offset:3px;
+  }
+
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--brass);
+    font-weight:500;
+    margin:0;
+  }
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    position:sticky;
+    top:0;
+    z-index:20;
+    background:var(--paper);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar-inner{
+    max-width:1080px;
+    margin:0 auto;
+    padding:0 28px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:24px;
+    min-height:62px;
+    flex-wrap:wrap;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family:"Archivo",sans-serif;
+    font-weight:800;
+    font-size:15px;
+    letter-spacing:-.01em;
+    color:var(--ink);
+    text-decoration:none;
+    padding:12px 0;
+  }
+  .brand-mark{
+    width:17px;height:17px;
+    flex:none;
+    border:2px solid var(--brass);
+    position:relative;
+  }
+  .brand-mark::after{
+    content:"";
+    position:absolute;
+    inset:3px 3px auto 3px;
+    height:2px;
+    background:var(--brass);
+  }
+  nav.pages{display:flex;gap:2px;flex-wrap:wrap;padding-bottom:6px;}
+  nav.pages a{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:12px;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    text-decoration:none;
+    padding:7px 11px;
+    border:1px solid transparent;
+  }
+  nav.pages a:hover{color:var(--ink);background:var(--surface);}
+  nav.pages a[aria-current="page"]{
+    color:var(--ink);
+    border-color:var(--line);
+    background:var(--surface);
+  }
+
+  main{max-width:1080px;margin:0 auto;padding:0 28px 96px;}
+  section[data-page]{padding-top:64px;}
+
+  .lede{
+    font-size:20px;
+    color:var(--ink-soft);
+    max-width:60ch;
+    margin:18px 0 0;
+  }
+  p{max-width:68ch;}
+  .stack{display:flex;flex-direction:column;gap:16px;}
+
+  /* ---------- hero ---------- */
+  .hero{
+    display:grid;
+    grid-template-columns:1.05fr .95fr;
+    gap:56px;
+    align-items:start;
+    padding-bottom:64px;
+    border-bottom:1px solid var(--line);
+  }
+  h1{font-size:clamp(34px,4.6vw,52px);line-height:1.06;margin:14px 0 0;}
+  h1 em{font-style:normal;color:var(--brass);}
+
+  .cta-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:32px;}
+  .btn{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:12.5px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    text-decoration:none;
+    padding:13px 20px;
+    border:1px solid var(--ink);
+    background:var(--ink);
+    color:var(--paper);
+    display:inline-block;
+  }
+  .btn:hover{background:transparent;color:var(--ink);}
+  .btn.ghost{background:transparent;color:var(--ink);border-color:var(--line);}
+  .btn.ghost:hover{border-color:var(--ink);}
+
+  /* ---------- the readout: measured gaps ---------- */
+  .readout{
+    background:var(--surface);
+    border:1px solid var(--line);
+    box-shadow:var(--shadow);
+    padding:22px;
+  }
+  .readout-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:12px;
+    padding-bottom:14px;
+    margin-bottom:18px;
+    border-bottom:1px solid var(--line);
+  }
+  .readout-head span:last-child{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:10.5px;
+    color:var(--ink-faint);
+    letter-spacing:.05em;
+  }
+  .gap-row{padding:13px 0;border-bottom:1px dotted var(--line);}
+  .gap-row:last-child{border-bottom:none;padding-bottom:0;}
+  .gap-label{
+    display:flex;
+    justify-content:space-between;
+    gap:14px;
+    align-items:baseline;
+    margin-bottom:9px;
+  }
+  .gap-topic{
+    font-family:"Archivo",sans-serif;
+    font-weight:600;
+    font-size:14px;
+    letter-spacing:-.005em;
+  }
+  .gap-src{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:10.5px;
+    color:var(--ink-faint);
+    white-space:nowrap;
+  }
+  .track{
+    position:relative;
+    height:9px;
+    background:var(--sunk);
+    border:1px solid var(--line);
+    overflow:hidden;
+  }
+  .track .covered{
+    position:absolute;
+    inset:0 auto 0 0;
+    background:var(--petrol);
+    width:0;
+    transition:width 1.1s cubic-bezier(.22,.7,.3,1);
+  }
+  .track .missing{
+    position:absolute;
+    inset:0 0 0 auto;
+    width:0;
+    background:repeating-linear-gradient(
+      -45deg,var(--brass) 0 2px,transparent 2px 5px
+    );
+    border-left:2px solid var(--brass);
+    transition:width 1.1s cubic-bezier(.22,.7,.3,1);
+  }
+  .gap-foot{
+    display:flex;
+    justify-content:space-between;
+    margin-top:7px;
+    font-family:"IBM Plex Mono",monospace;
+    font-size:10.5px;
+    color:var(--ink-faint);
+  }
+  .gap-foot b{color:var(--brass);font-weight:500;}
+  .readout-key{
+    display:flex;
+    gap:18px;
+    flex-wrap:wrap;
+    margin-top:18px;
+    padding-top:14px;
+    border-top:1px solid var(--line);
+    font-family:"IBM Plex Mono",monospace;
+    font-size:10.5px;
+    color:var(--ink-faint);
+  }
+  .swatch{display:inline-block;width:20px;height:8px;vertical-align:middle;margin-right:6px;border:1px solid var(--line);}
+  .swatch.cov{background:var(--petrol);}
+  .swatch.mis{background:repeating-linear-gradient(-45deg,var(--brass) 0 2px,transparent 2px 5px);}
+
+  @media (prefers-reduced-motion:reduce){
+    .track .covered,.track .missing{transition:none;}
+  }
+
+  /* ---------- generic blocks ---------- */
+  h2{font-size:27px;margin-bottom:10px;}
+  h2.rule{padding-bottom:12px;border-bottom:2px solid var(--ink);margin-bottom:26px;}
+  h3{font-size:17px;}
+
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-top:32px;}
+  .cell{background:var(--surface);padding:22px;}
+  .cell h3{margin-bottom:8px;}
+  .cell p{font-size:15px;color:var(--ink-soft);margin:0;}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:28px;margin:44px 0 0;padding:26px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+  .stat-num{font-size:30px;font-weight:500;color:var(--ink);line-height:1;}
+  .stat-lbl{font-size:13px;color:var(--ink-soft);margin-top:8px;display:block;}
+
+  /* pipeline: a real sequence, so it is numbered */
+  .steps{display:flex;flex-direction:column;border-top:1px solid var(--line);margin-top:28px;}
+  .step{display:grid;grid-template-columns:52px 168px 1fr;gap:20px;padding:18px 0;border-bottom:1px solid var(--line);align-items:start;}
+  .step-n{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--brass);padding-top:3px;}
+  .step h3{font-size:15px;}
+  .step p{margin:0;font-size:15px;color:var(--ink-soft);}
+
+  .panel{background:var(--surface);border:1px solid var(--line);padding:24px;margin-top:32px;}
+  .panel.warn{border-left:3px solid var(--brass);}
+  .panel h3{margin-bottom:10px;}
+  .panel ul{margin:10px 0 0;padding-left:20px;color:var(--ink-soft);font-size:15.5px;}
+  .panel li+li{margin-top:7px;}
+
+  /* pricing */
+  .tiers{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;margin-top:32px;}
+  .tier{background:var(--surface);border:1px solid var(--line);padding:24px;display:flex;flex-direction:column;}
+  .tier.lead{border-color:var(--brass);}
+  .tier-top{display:flex;justify-content:space-between;align-items:baseline;gap:14px;border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:16px;}
+  .price{font-size:26px;color:var(--brass);font-weight:500;white-space:nowrap;}
+  .cadence{font-size:11px;color:var(--ink-faint);display:block;text-align:right;}
+  .tier ul{margin:0;padding-left:19px;color:var(--ink-soft);font-size:15px;flex:1;}
+  .tier li+li{margin-top:6px;}
+  .tier-add{margin-top:16px;padding-top:13px;border-top:1px dotted var(--line);font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--ink-faint);}
+
+  /* tables */
+  .tablewrap{overflow-x:auto;margin-top:26px;}
+  table{width:100%;border-collapse:collapse;font-size:15px;min-width:520px;}
+  th{text-align:left;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);font-weight:500;padding:0 14px 10px 0;border-bottom:2px solid var(--ink);}
+  td{padding:13px 14px 13px 0;border-bottom:1px solid var(--line);color:var(--ink-soft);vertical-align:top;}
+  td.metric{color:var(--ink);white-space:nowrap;}
+  td.win{color:var(--petrol);}
+  td.lose{color:var(--brass);}
+
+  /* sample findings */
+  .finding{border-top:1px solid var(--line);padding:22px 0;}
+  .finding:last-of-type{border-bottom:1px solid var(--line);}
+  .finding-head{display:flex;justify-content:space-between;gap:16px;align-items:baseline;flex-wrap:wrap;}
+  .score{font-size:12px;color:var(--brass);white-space:nowrap;}
+  .finding p{font-size:15.5px;color:var(--ink-soft);margin:9px 0 0;}
+  .cite{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--ink-faint);margin-top:9px;word-break:break-word;}
+
+  /* faq */
+  details{border-bottom:1px solid var(--line);padding:16px 0;}
+  details summary{
+    font-family:"Archivo",sans-serif;
+    font-weight:600;
+    font-size:16px;
+    cursor:pointer;
+    list-style:none;
+    display:flex;
+    justify-content:space-between;
+    gap:16px;
+    align-items:baseline;
+  }
+  details summary::-webkit-details-marker{display:none;}
+  details summary::after{content:"+";font-family:"IBM Plex Mono",monospace;color:var(--brass);font-size:16px;}
+  details[open] summary::after{content:"\2013";}
+  details p{margin:12px 0 0;color:var(--ink-soft);font-size:15.5px;}
+
+  /* enquire */
+  .enq{display:grid;grid-template-columns:1.1fr .9fr;gap:36px;margin-top:32px;align-items:start;}
+  .checklist{list-style:none;margin:0;padding:0;}
+  .checklist li{display:flex;gap:11px;padding:11px 0;border-bottom:1px dotted var(--line);font-size:15.5px;color:var(--ink-soft);}
+  .checklist .n{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--brass);padding-top:4px;flex:none;}
+
+  footer{
+    border-top:1px solid var(--line);
+    margin-top:72px;
+    padding:26px 0 0;
+    display:flex;
+    justify-content:space-between;
+    gap:20px;
+    flex-wrap:wrap;
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11.5px;
+    color:var(--ink-faint);
+  }
+  .disclaimer{
+    margin-top:16px;
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11px;
+    color:var(--ink-faint);
+    max-width:74ch;
+    line-height:1.6;
+  }
+
+  @media (max-width:880px){
+    .hero{grid-template-columns:1fr;gap:38px;}
+    .grid-3{grid-template-columns:1fr;}
+    .stats{grid-template-columns:repeat(2,1fr);gap:22px;}
+    .tiers{grid-template-columns:1fr;}
+    .enq{grid-template-columns:1fr;}
+    .step{grid-template-columns:34px 1fr;}
+    .step p{grid-column:2;}
+  }
+  @media (max-width:560px){
+    body{font-size:16px;}
+    main{padding:0 18px 72px;}
+    .topbar-inner{padding:0 18px;}
+    .stats{grid-template-columns:1fr 1fr;}
+  }
+</style>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="#overview"><span class="brand-mark"></span>The Competitor Dossier</a>
+    <nav class="pages" id="nav">
+      <a href="#overview">Overview</a>
+      <a href="#method">Method</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#sample">Sample</a>
+      <a href="#faq">FAQ</a>
+      <a href="#enquire">Enquire</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- ============ OVERVIEW ============ -->
+  <section data-page="overview">
+    <div class="hero">
+      <div>
+        <p class="eyebrow">Competitor content intelligence</p>
+        <h1>Find what your competitors publish that you <em>don't</em>.</h1>
+        <p class="lede">
+          Not a consultant's impressions after a day of clicking around. Every
+          page on your site and theirs is crawled, compared, and scored — and
+          every claim in the report links to the page it came from.
+        </p>
+        <div class="cta-row">
+          <a class="btn" href="#enquire">Request an audit</a>
+          <a class="btn ghost" href="#sample">See a real report</a>
+        </div>
+      </div>
+
+      <div class="readout" id="readout">
+        <div class="readout-head">
+          <span class="eyebrow">Measured gaps</span>
+          <span>SAMPLE&nbsp;/&nbsp;3 SITES&nbsp;/&nbsp;85 PASSAGES</span>
+        </div>
+
+        <div class="gap-row">
+          <div class="gap-label">
+            <span class="gap-topic">Game mechanics pages</span>
+            <span class="gap-src">Two Rivers Studio</span>
+          </div>
+          <div class="track"><i class="covered" data-cov="58.6"></i><i class="missing" data-mis="41.4"></i></div>
+          <div class="gap-foot"><span>closest match 0.586</span><b>gap 0.414</b></div>
+        </div>
+
+        <div class="gap-row">
+          <div class="gap-label">
+            <span class="gap-topic">Patch notes &amp; release logs</span>
+            <span class="gap-src">Halcyon Interactive</span>
+          </div>
+          <div class="track"><i class="covered" data-cov="63.6"></i><i class="missing" data-mis="36.4"></i></div>
+          <div class="gap-foot"><span>closest match 0.636</span><b>gap 0.364</b></div>
+        </div>
+
+        <div class="gap-row">
+          <div class="gap-label">
+            <span class="gap-topic">Careers &amp; studio culture</span>
+            <span class="gap-src">Two Rivers Studio</span>
+          </div>
+          <div class="track"><i class="covered" data-cov="66.6"></i><i class="missing" data-mis="33.4"></i></div>
+          <div class="gap-foot"><span>closest match 0.666</span><b>gap 0.334</b></div>
+        </div>
+
+        <div class="readout-key">
+          <span><i class="swatch cov"></i>what you already cover</span>
+          <span><i class="swatch mis"></i>the distance to close</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding-top:56px;">
+      <h2 class="rule">Why most competitor audits don't survive contact with a client</h2>
+      <p>
+        The usual version is a person clicking through four rival websites for a
+        day and writing up what stuck. It reads fine. It's also unrepeatable,
+        skewed by whichever pages happened to get opened, and impossible to
+        check — when a client asks "where did this come from?", the honest
+        answer is "I remember seeing it somewhere on their blog."
+      </p>
+      <p>
+        This runs as a pipeline instead. The same sites, the same method, every
+        time — and every finding carries the URL it was drawn from.
+      </p>
+
+      <div class="grid-3">
+        <div class="cell">
+          <h3>Measured, not guessed</h3>
+          <p>
+            Every passage a competitor publishes is compared against the closest
+            equivalent anywhere on your site. The weakest matches are the gaps.
+            That's a number, not an opinion.
+          </p>
+        </div>
+        <div class="cell">
+          <h3>Sourced to the page</h3>
+          <p>
+            Each finding cites the exact competitor URL behind it. You can open
+            it and check. Nothing is written from memory or general knowledge
+            about your market.
+          </p>
+        </div>
+        <div class="cell">
+          <h3>Checked before it ships</h3>
+          <p>
+            Every citation is verified against the crawl automatically. A report
+            referencing a page that was never fetched doesn't get delivered — it
+            fails the build.
+          </p>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div>
+          <span class="stat-num">0.41</span>
+          <span class="stat-lbl">largest measured gap in the sample audit</span>
+        </div>
+        <div>
+          <span class="stat-num">85</span>
+          <span class="stat-lbl">passages compared across 3 sites</span>
+        </div>
+        <div>
+          <span class="stat-num">100%</span>
+          <span class="stat-lbl">of cited URLs machine-verified</span>
+        </div>
+        <div>
+          <span class="stat-num">5 d</span>
+          <span class="stat-lbl">from go-ahead to delivered audit</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ METHOD ============ -->
+  <section data-page="method" hidden>
+    <p class="eyebrow">Method</p>
+    <h2 class="rule">Seven stages, run in order, every time</h2>
+    <p>
+      Nothing here is improvised per client. The same pipeline runs for an audit
+      and for a monitoring check — monitoring simply adds a comparison against
+      the previous run and reports only what moved.
+    </p>
+
+    <div class="steps">
+      <div class="step">
+        <span class="step-n">01</span>
+        <h3>Crawl</h3>
+        <p>Your site and each named competitor, fetched with a real browser so JavaScript-rendered pages are captured as a visitor would see them. robots.txt and rate limits respected on every request.</p>
+      </div>
+      <div class="step">
+        <span class="step-n">02</span>
+        <h3>Extract</h3>
+        <p>Navigation, cookie banners, and footers stripped away, leaving the actual content of each page. A typical page reduces from 400KB of markup to the few thousand words that matter.</p>
+      </div>
+      <div class="step">
+        <span class="step-n">03</span>
+        <h3>Enrich</h3>
+        <p>On-page signals read from the markup — title and description coverage, heading structure, content depth, internal linking, structured data — plus each site's own sitemap for scale and publishing cadence.</p>
+      </div>
+      <div class="step">
+        <span class="step-n">04</span>
+        <h3>Segment</h3>
+        <p>Pages split into passages at their own heading boundaries, so a comparison is made against a coherent section rather than an arbitrary slice of text.</p>
+      </div>
+      <div class="step">
+        <span class="step-n">05</span>
+        <h3>Compare</h3>
+        <p>Every passage converted into a numerical representation of its meaning, so "release notes" and "patch log" register as the same subject even though they share no words.</p>
+      </div>
+      <div class="step">
+        <span class="step-n">06</span>
+        <h3>Measure</h3>
+        <p>For each competitor passage, the closest thing on your site is found and scored. A distant closest match means they cover ground you don't — ranked by how large that distance is.</p>
+      </div>
+      <div class="step">
+        <span class="step-n">07</span>
+        <h3>Report</h3>
+        <p>Findings written up with a citation on every claim, then each citation checked back against the crawl. Delivered as a PDF with a walkthrough call.</p>
+      </div>
+    </div>
+
+    <div class="panel warn">
+      <h3>What isn't measured, and why we say so</h3>
+      <p style="color:var(--ink-soft);font-size:15.5px;margin:0;">
+        Plenty of audits quietly present estimates as findings. These are the
+        limits of this one, stated up front rather than discovered later:
+      </p>
+      <ul>
+        <li><strong>No search volumes, rankings, or traffic figures.</strong> Those can't be derived from a page — they need a paid data subscription, quoted separately if you want them. No number in a report is a ranking.</li>
+        <li><strong>Sites publishing no sitemap are reported as unknown scale.</strong> Not as small, not as inactive. Unknown means unknown.</li>
+        <li><strong>Page samples are samples.</strong> A crawl depth is agreed before we start, and the report says what it was rather than implying the whole site was read.</li>
+        <li><strong>Pages behind a login aren't touched</strong>, nor is anything a site's robots.txt asks crawlers to leave alone.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ PRICING ============ -->
+  <section data-page="pricing" hidden>
+    <p class="eyebrow">Pricing</p>
+    <h2 class="rule">Four ways to buy the same pipeline</h2>
+    <p>
+      Fixed prices, not day rates. You know what it costs before it starts.
+    </p>
+
+    <div class="tiers">
+      <div class="tier lead">
+        <div class="tier-top">
+          <div>
+            <h3>Competitor Gap Audit</h3>
+            <span class="cadence" style="text-align:left;">One-time · 5 working days</span>
+          </div>
+          <div><span class="price">$1,500</span><span class="cadence">up to 5 competitors</span></div>
+        </div>
+        <ul>
+          <li>Prioritised gap list, each citing the competitor page behind it</li>
+          <li>Content depth measured against every competitor</li>
+          <li>Technical findings: descriptions, heading structure, structured data</li>
+          <li>Publishing cadence wherever sitemaps make it measurable</li>
+          <li>PDF report plus a 45-minute walkthrough call</li>
+        </ul>
+        <div class="tier-add">Up to 10 competitors — $2,500</div>
+      </div>
+
+      <div class="tier">
+        <div class="tier-top">
+          <div>
+            <h3>Monitoring Retainer</h3>
+            <span class="cadence" style="text-align:left;">Monthly · re-crawled fortnightly</span>
+          </div>
+          <div><span class="price">$600</span><span class="cadence">per month</span></div>
+        </div>
+        <ul>
+          <li>Every monitored site re-crawled on schedule</li>
+          <li>New, edited, and removed pages identified automatically</li>
+          <li>A short brief on what moved — not a data dump</li>
+          <li>Pages that look removed are re-checked before you're told, so you don't get false alarms</li>
+        </ul>
+        <div class="tier-add">Weekly re-crawls — $1,000 / month</div>
+      </div>
+
+      <div class="tier">
+        <div class="tier-top">
+          <div>
+            <h3>Content Brief</h3>
+            <span class="cadence" style="text-align:left;">Per topic · 2 working days</span>
+          </div>
+          <div><span class="price">$200</span><span class="cadence">each</span></div>
+        </div>
+        <ul>
+          <li>How the strongest competitor pages on a topic are structured</li>
+          <li>What they cover, in what depth, and in what order</li>
+          <li>Where the openings are before you commission the writing</li>
+        </ul>
+        <div class="tier-add">Pack of five — $150 each ($750)</div>
+      </div>
+
+      <div class="tier">
+        <div class="tier-top">
+          <div>
+            <h3>Positioning Battlecard</h3>
+            <span class="cadence" style="text-align:left;">One-time · 3 working days</span>
+          </div>
+          <div><span class="price">$800</span><span class="cadence">one-time</span></div>
+        </div>
+        <ul>
+          <li>How each competitor describes themselves, in their words</li>
+          <li>What they lead with, and how they're priced</li>
+          <li>One document your sales and marketing people can actually use</li>
+        </ul>
+        <div class="tier-add">Bundled with an audit — $600</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>What happens after you say yes</h3>
+      <p style="margin:0;color:var(--ink-soft);font-size:15.5px;">
+        You send your domain and your competitor list. We agree the crawl scope
+        in writing before anything is fetched. If you can grant read-only
+        Search Console access for your own site, the findings get considerably
+        sharper at no extra cost — that's Google's own data for your pages, and
+        there's no substitute for it.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ SAMPLE ============ -->
+  <section data-page="sample" hidden>
+    <p class="eyebrow">Sample report</p>
+    <h2 class="rule">Real output, subjects anonymised</h2>
+    <p>
+      Genuine findings from a pilot audit of three game studios. Company and
+      product names have been replaced with stand-ins — the numbers, scores, and
+      structure are exactly as the pipeline produced them.
+    </p>
+
+    <h3 style="margin-top:40px;">Priority gaps</h3>
+
+    <div class="finding">
+      <div class="finding-head">
+        <h3>Granular patch notes and release logs</h3>
+        <span class="score">gap 0.364</span>
+      </div>
+      <p>
+        Halcyon Interactive publishes itemised patch notes covering specific bug
+        fixes, balance changes, and localisation updates. Northwind Games's
+        closest equivalent is broad promotional release posts, leaving players
+        without a single place to track what actually changed.
+      </p>
+      <p class="cite">closest match on client site: /blog/ &nbsp;·&nbsp; source: halcyoninteractive.example/blog/ridgewalker-patch-5</p>
+    </div>
+
+    <div class="finding">
+      <div class="finding-head">
+        <h3>Dedicated game pages covering mechanics</h3>
+        <span class="score">gap 0.414</span>
+      </div>
+      <p>
+        Two Rivers Studio maintains a landing page per title detailing core
+        mechanics, modes, and setting. Queries about game mechanics on Northwind
+        Games's site resolve to staff biography pages instead.
+      </p>
+      <p class="cite">closest match on client site: /team/ &nbsp;·&nbsp; source: tworiversstudio.example/games/thornwood</p>
+    </div>
+
+    <div class="finding">
+      <div class="finding-head">
+        <h3>Careers, benefits, and studio culture</h3>
+        <span class="score">gap 0.334</span>
+      </div>
+      <p>
+        Two Rivers Studio publishes structured recruiting content covering
+        working environment, benefits, and hiring philosophy. Northwind Games
+        carries individual employee bios but no hiring or culture pages.
+      </p>
+      <p class="cite">closest match on client site: /team/ &nbsp;·&nbsp; source: tworiversstudio.example/careers/</p>
+    </div>
+
+    <h3 style="margin-top:48px;">Measured metrics</h3>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Measure</th>
+            <th>Northwind Games</th>
+            <th>Halcyon Interactive</th>
+            <th>Two Rivers Studio</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="metric">Avg words per page</td>
+            <td class="win">652 — ahead</td>
+            <td>277</td>
+            <td>74</td>
+          </tr>
+          <tr>
+            <td class="metric">Pages with structured data</td>
+            <td class="lose">0 of 10</td>
+            <td>10 of 10</td>
+            <td>0 of 10</td>
+          </tr>
+          <tr>
+            <td class="metric">Empty meta descriptions</td>
+            <td class="win">0 — ahead</td>
+            <td>5 of 10</td>
+            <td>10 of 10</td>
+          </tr>
+          <tr>
+            <td class="metric">Heading structure faults</td>
+            <td>4 of 10</td>
+            <td>5 of 10</td>
+            <td>10 of 10</td>
+          </tr>
+          <tr>
+            <td class="metric">Sitemap URLs published</td>
+            <td>none published</td>
+            <td>82</td>
+            <td>none published</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:14px;color:var(--ink-faint);margin-top:16px;">
+      "Ahead" is reported as plainly as a shortfall. An audit that only finds
+      problems isn't being thorough, it's being unbalanced.
+    </p>
+  </section>
+
+  <!-- ============ FAQ ============ -->
+  <section data-page="faq" hidden>
+    <p class="eyebrow">Questions</p>
+    <h2 class="rule">Asked before, answered honestly</h2>
+
+    <details>
+      <summary>Do you scrape Google for our rankings?</summary>
+      <p>
+        No. Scraping search results is against Google's terms, technically
+        fragile, and gets IPs banned mid-project. Ranking and search-volume data
+        comes from a licensed provider, quoted separately, or it isn't in the
+        report at all. Nothing gets estimated and presented as measured.
+      </p>
+    </details>
+
+    <details>
+      <summary>How do I know the report isn't just plausible-sounding AI output?</summary>
+      <p>
+        Because the findings aren't written by a model — they're measured, then
+        explained by one. The gap list comes out of scoring every competitor
+        passage against your site's closest equivalent. The write-up is only
+        allowed to discuss findings that already exist in that data, and every
+        cited URL is checked back against the crawl before delivery. A report
+        citing a page we never fetched fails the check and isn't sent.
+      </p>
+    </details>
+
+    <details>
+      <summary>Is crawling our competitors' sites legal?</summary>
+      <p>
+        We fetch public pages, at a polite rate, obeying each site's robots.txt
+        — the same thing every search engine does. Nothing behind a login is
+        touched, and no site is hit hard enough to be a nuisance. Crawl scope is
+        agreed with you in writing before anything starts.
+      </p>
+    </details>
+
+    <details>
+      <summary>What if a competitor's site has almost no content?</summary>
+      <p>
+        Then that's the finding, and it's stated as one. The sample audit found
+        one competitor averaging 74 words a page against the client's 652 — the
+        client was comfortably ahead, and the report said so first.
+      </p>
+    </details>
+
+    <details>
+      <summary>Why do you need Search Console access?</summary>
+      <p>
+        You don't have to grant it, but it's the single biggest free upgrade
+        available. Search Console is Google's own first-party record of your
+        site: real queries, real impressions, real positions. Read-only access
+        takes a minute to grant and no purchased dataset is more accurate for
+        your own pages. It only ever covers sites you own, so competitor
+        analysis stays with what we crawl.
+      </p>
+    </details>
+
+    <details>
+      <summary>What does the monitoring retainer actually send me?</summary>
+      <p>
+        A short brief on what changed since the last check, competitor activity
+        first. Unchanged pages are filtered out before anything is written, so
+        you're not reading a monthly restatement of things you already know. If
+        nothing meaningful happened, the brief says that in a line rather than
+        padding to look busy.
+      </p>
+    </details>
+
+    <details>
+      <summary>Can I have the raw data?</summary>
+      <p>
+        Yes. The crawled pages, the extracted text, the scores behind every
+        finding — all of it is yours on request. There's nothing in the method
+        that only works if you can't see inside it.
+      </p>
+    </details>
+  </section>
+
+  <!-- ============ ENQUIRE ============ -->
+  <section data-page="enquire" hidden>
+    <p class="eyebrow">Enquire</p>
+    <h2 class="rule">Start an audit</h2>
+    <p>
+      Send the four things below and you'll get a scope confirmation back, then
+      a delivered audit within five working days.
+    </p>
+
+    <div class="enq">
+      <div>
+        <ul class="checklist">
+          <li><span class="n">01</span><span><strong>Your domain</strong> — including whether any content lives on a separate subdomain, like a blog or docs site. Content on a subdomain is missed unless it's named.</span></li>
+          <li><span class="n">02</span><span><strong>Five to ten competitors</strong> — whoever <em>you</em> consider competition, not whoever ranks. The two lists are usually different and yours is the one that matters.</span></li>
+          <li><span class="n">03</span><span><strong>Any topics you already care about</strong> — optional, but it focuses the report on what you're actually trying to win.</span></li>
+          <li><span class="n">04</span><span><strong>Search Console access</strong> — optional, read-only, and free. It sharpens everything about your own site.</span></li>
+        </ul>
+
+        <div class="cta-row">
+          <a class="btn" href="mailto:hello@competitordossier.example?subject=Audit%20enquiry">Email an enquiry</a>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:0;">
+        <h3>Before you commit</h3>
+        <p style="margin:0;color:var(--ink-soft);font-size:15.5px;">
+          If you'd rather see the work before paying for it, ask for a single
+          content brief at $200. It runs the same pipeline against one topic and
+          takes two days. It's the cheapest way to find out whether the output is
+          worth the audit — and if it isn't, you've spent $200 instead of $1,500.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>The Competitor Dossier — competitor content intelligence</span>
+    <span>Measured · Cited · Verified</span>
+  </footer>
+  <p class="disclaimer">
+    Demonstration project. The service, pricing, and contact address on this
+    site are illustrative; the sample findings are genuine pipeline output with
+    the studios anonymised.
+  </p>
+
+</main>
+
+<script>
+  (function () {
+    var pages = Array.prototype.slice.call(document.querySelectorAll("[data-page]"));
+    var links = Array.prototype.slice.call(document.querySelectorAll("#nav a"));
+    var readoutShown = false;
+
+    function fillReadout() {
+      if (readoutShown) return;
+      readoutShown = true;
+      var bars = document.querySelectorAll("#readout .covered, #readout .missing");
+      Array.prototype.forEach.call(bars, function (bar) {
+        var pct = bar.getAttribute("data-cov") || bar.getAttribute("data-mis");
+        bar.style.width = pct + "%";
+      });
+    }
+
+    function show(id) {
+      var found = pages.some(function (p) { return p.dataset.page === id; });
+      if (!found) id = "overview";
+
+      pages.forEach(function (p) { p.hidden = p.dataset.page !== id; });
+      links.forEach(function (a) {
+        if (a.getAttribute("href") === "#" + id) {
+          a.setAttribute("aria-current", "page");
+        } else {
+          a.removeAttribute("aria-current");
+        }
+      });
+
+      if (id === "overview") {
+        // let the bars start at zero before growing to their measured width
+        window.requestAnimationFrame(function () {
+          window.requestAnimationFrame(fillReadout);
+        });
+      }
+      window.scrollTo(0, 0);
+    }
+
+    function current() {
+      return (window.location.hash || "#overview").slice(1);
+    }
+
+    window.addEventListener("hashchange", function () { show(current()); });
+    show(current());
+  })();
+</script>
